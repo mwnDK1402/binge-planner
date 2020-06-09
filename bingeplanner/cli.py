@@ -6,21 +6,25 @@ import datetime
 
 
 @click.command()
-@click.argument('episodes', nargs=1)
+@click.argument('episodes', default='*', nargs=1)
 @click.option('--fill', default=2)
-@click.option('--regex', default=' <i> .*\.mkv')
+@click.option('--regex', default=' <i> ')
 def cli(episodes, fill, regex):
     episode_indices = parse_range(episodes, fill)
 
     delta = datetime.timedelta()
     for root, dirs, files in os.walk("."):
         for filename in files:
-            if any(re.search(regex.replace('<i>', index), filename) for index in episode_indices):
-                path = os.path.join(root, filename)
-                with open(path, 'rb') as f:
-                    mkv = enzyme.MKV(f)
-                    delta += mkv.info.duration
+            if (episodes == '*' or any(re.search(regex.replace('<i>', index), filename) for index in episode_indices)) and filename.endswith('.mkv'):
+                delta += get_duration(root, filename)
+
     print(td_format(delta))
+
+def get_duration(root, filename):
+    path = os.path.join(root, filename)
+    with open(path, 'rb') as f:
+        mkv = enzyme.MKV(f)
+        return mkv.info.duration
 
 
 def parse_range(input, range_fill):
