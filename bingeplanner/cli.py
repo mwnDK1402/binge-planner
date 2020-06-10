@@ -15,10 +15,15 @@ def cli(episodes, fill, regex):
     delta = datetime.timedelta()
     for root, dirs, files in os.walk("."):
         for filename in files:
-            if (episodes == '*' or any(re.search(regex.replace('<i>', index), filename) for index in episode_indices)) and filename.endswith('.mkv'):
+            if (episodes == '*' or filename_contains_regex(filename, regex, episode_indices)) and filename.endswith('.mkv'):
                 delta += get_duration(root, filename)
 
     print(td_format(delta))
+
+
+def filename_contains_regex(filename, regex, episode_indices):
+    return any(re.search(regex.replace('<i>', index), filename) for index in episode_indices)
+
 
 def get_duration(root, filename):
     path = os.path.join(root, filename)
