@@ -3,20 +3,22 @@ import click
 import enzyme
 import re
 import datetime
+from bingeplanner.skiptime import SkipTime
 
 
 @click.command()
-@click.argument('episodes', default='*', nargs=1)
-@click.option('--fill', default=2)
-@click.option('--regex', default=' <i> ')
-def cli(episodes, fill, regex):
+@click.argument('episodes', type=click.STRING, default='*', nargs=1)
+@click.option('--fill', type=click.INT, default=2)
+@click.option('--regex', type=click.STRING, default=' <i> ')
+@click.option('--skiptime', type=SkipTime(), default="00:00")
+def cli(episodes, fill, regex, skiptime):
     episode_indices = parse_range(episodes, fill)
 
     delta = datetime.timedelta()
     for root, dirs, files in os.walk("."):
         for filename in files:
             if (episodes == '*' or filename_contains_regex(filename, regex, episode_indices)) and filename.endswith('.mkv'):
-                delta += get_duration(root, filename)
+                delta += get_duration(root, filename) - skiptime
 
     print(td_format(delta))
 
